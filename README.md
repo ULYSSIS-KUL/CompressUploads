@@ -12,7 +12,7 @@ This extension uses various techniques to reduce the size of uploaded files. Mad
 ## Installation
 * Install [qpdf](http://qpdf.sourceforge.net/) for PDF compression.
 * Install [ImageMagick](https://imagemagick.org/) and [Imagick](https://pecl.php.net/package/imagick) for image processing.
-* Download [the latest release](https://github.com/ULYSSIS-KUL/CompressUploads/releases/latest/CompressUploads.zip), and put the `CompressUploads` folder in the `extensions` directory.
+* Download [the latest release](https://github.com/ULYSSIS-KUL/CompressUploads/releases/latest/download/CompressUploads.zip), and put the `CompressUploads` folder in the `extensions` directory.
 * Add the following to `LocalSettings.php`:
 ```
 wfLoadExtension( 'CompressUploads' );
