@@ -18,7 +18,9 @@ class CompressUploads {
         global $wgCUJpgQuality;
         if (!isset($wgCUJpgQuality)) $wgCUJpgQuality = 80;
         global $wgCUMaxWidth;
+        if (!isset($wgCUMaxWidth)) $wgCUMaxWidth = 2000;
         global $wgCUMaxHeight;
+        if (!isset($wgCUMaxHeight)) $wgCUMaxHeight = 2000;
         global $wgCUStripExif;
         if (!isset($wgCUStripExif)) $wgCUStripExif = true;
 

@@ -28,8 +28,8 @@ As usual, configuration options can be added to `LocalSettings.php` using global
 | `$wgCUPngCompression` | `int` | `9` | The PNG [compression level](https://www.imagemagick.org/script/command-line-options.php#define) (0-9). This compression is [lossless](https://en.wikipedia.org/wiki/Lossless_compression) and should not cause any artifacts. |
 | `$wgCUPngFilter` | `int` | `6` | The PNG  [compression filter](https://www.imagemagick.org/script/command-line-options.php#define). For advanced users. |
 | `$wgCUJpgQuality` | `int` | `80` | The JPG compression quality (0-100). This compression is [lossy](https://en.wikipedia.org/wiki/Lossy_compression): lower quality levels will cause compression artifacts. |
-| `$wgCUMaxWidth` | `int` | _not set_ | The maximum image width, larger images will be scaled accordingly. If not set, image width is unlimited. |
-| `$wgCUMaxHeight` | `int` | _not set_ | The maximum image height, larger images will be scaled accordingly. If not set, image height is unlimited. |
+| `$wgCUMaxWidth` | `int` | `2000` | The maximum image width in pixels, larger images will be scaled accordingly. If not set, image width is unlimited. |
+| `$wgCUMaxHeight` | `int` | `2000` | The maximum image height in pixels, larger images will be scaled accordingly. If not set, image height is unlimited. |
 | `$wgCUStripExif` | `boolean` | `true` | Whether [EXIF data](https://en.wikipedia.org/wiki/Exif) should be stripped from uploaded images. |
 
 ## Tips
