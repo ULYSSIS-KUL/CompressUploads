@@ -11,12 +11,11 @@ class CompressUploads {
             "image/x-ms-bmp",
             "image/tiff",
             "image/tiff-fx");
-        global $wgCUPngQuality;
-        // 9: compression factor (0-9)
-        // 6: filter type (adaptive filtering)
-        if (!isset($wgCUPngQuality)) $wgCUPngQuality = 96;
+        global $wgCUPngCompression;
+        if (!isset($wgCUPngQuality)) $wgCUPngQuality = 9;
+        global $wgCUPngFilter;
+        if (!isset($wgCUPngFilter)) $wgCUPngFilter = 6;
         global $wgCUJpgQuality;
-        // 0-100
         if (!isset($wgCUJpgQuality)) $wgCUJpgQuality = 80;
         global $wgCUMaxWidth;
         global $wgCUMaxHeight;
@@ -69,7 +68,7 @@ class CompressUploads {
 
             if ($isPng) {
                 $image->setImageCompression(Imagick::COMPRESSION_ZIP);
-                $image->setImageCompressionQuality($wgCUPngQuality);
+                $image->setImageCompressionQuality($wgCUPngCompression * 10 + $wgCUPngFilter);
             }
 
             if ($isJpg) {
