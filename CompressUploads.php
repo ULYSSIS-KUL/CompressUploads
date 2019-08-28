@@ -45,7 +45,7 @@ class CompressUploads {
 
         if ($isPdf && $wgCUCompressPdf) {
             $outPath = tempnam("/tmp", "cut");
-            exec("ps2pdf " . escapeshellarg($tempPath) . " " . escapeshellarg($outPath));
+            exec("qpdf --object-streams=generate " . escapeshellarg($tempPath) . " " . escapeshellarg($outPath));
             // If the output is somehow larger, we don't want to continue.
             if (filesize($tempPath) <= filesize($outPath)) {
                 return true;
