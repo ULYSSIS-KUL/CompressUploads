@@ -1,31 +1,43 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class CompressUploads {
-    public static function onUploadFormBeforeProcessing($upload) {
+    public static function onUploadVerifyFile($upload) {
+        // Stashed files are already processed.
+        if ($upload instanceof UploadFromStash) {
+            return;
+        }
+
         global $wgCUCompressPdf;
-        if (!isset($wgCUCompressPdf)) $wgCUCompressPdf = true;
+        $wgCUCompressPdf ??= true;
         global $wgCUConvertImages;
-        if (!isset($wgCUConvertImages)) $wgCUConvertImages = array(
+        $wgCUConvertImages ??= array(
             "image/bmp",
             "image/x-bmp",
             "image/x-ms-bmp",
             "image/tiff",
             "image/tiff-fx");
         global $wgCUPngCompression;
-        if (!isset($wgCUPngQuality)) $wgCUPngQuality = 9;
+        $wgCUPngQuality ??= 9;
         global $wgCUPngFilter;
-        if (!isset($wgCUPngFilter)) $wgCUPngFilter = 6;
+        $wgCUPngFilter ??= 6;
         global $wgCUJpgQuality;
-        if (!isset($wgCUJpgQuality)) $wgCUJpgQuality = 80;
+        $wgCUJpgQuality ??= 80;
         global $wgCUMaxWidth;
-        if (!isset($wgCUMaxWidth)) $wgCUMaxWidth = 2000;
+        $wgCUMaxWidth ??= 2000;
         global $wgCUMaxHeight;
-        if (!isset($wgCUMaxHeight)) $wgCUMaxHeight = 2000;
+        $wgCUMaxHeight ??= 2000;
         global $wgCUStripExif;
-        if (!isset($wgCUStripExif)) $wgCUStripExif = true;
+        $wgCUStripExif ??= true;
 
-        $mUpload = $upload->mUpload;
-        $tempPath = $mUpload->getTempPath();
+        $rp = new ReflectionProperty("UploadBase", "mDesiredDestName");
+        $rp->setAccessible(true);
+        $name = $rp->getValue($upload);
+        $rp = new ReflectionProperty("UploadBase", "mFinalExtension");
+        $rp->setAccessible(true);
+        $extension = $rp->getValue($upload);
+        $tempPath = $upload->getTempPath();
 
         $isPdf = false;
         $convert = false;
@@ -47,13 +59,11 @@ class CompressUploads {
         if ($isPdf && $wgCUCompressPdf) {
             $outPath = tempnam("/tmp", "cut");
             exec("qpdf --object-streams=generate " . escapeshellarg($tempPath) . " " . escapeshellarg($outPath));
-            // If the output is somehow larger, we don't want to continue.
-            if (filesize($tempPath) <= filesize($outPath)) {
-                return true;
+            // Only finalize if our output is smaller.
+            if (filesize($outPath) < filesize($tempPath)) {
+                copy($outPath, $tempPath);
+                unlink($outPath);
             }
-
-            copy($outPath, $tempPath);
-            unlink($outPath);
         }
 
         if ($convert || $isPng || $isJpg) {
@@ -61,11 +71,9 @@ class CompressUploads {
             if ($convert) {
                 $image->setImageFormat("png");
                 $isPng = true;
-
-                // We have to add .png to the file name, otherwise mediawiki gets ornery.
-                $tempPath = $tempPath . ".png";
-                $upload->mDesiredDestName = $upload->mDesiredDestName . ".png";
-                $mUpload->initializePathInfo($upload->mDesiredDestName, $tempPath, $mUpload->getFileSize());
+                $i = strrpos($name, ".");
+                $name = substr($name, 0, $i) . ".png";
+                $extension = "png";
             }
 
             if ($isPng) {
@@ -86,17 +94,28 @@ class CompressUploads {
 
             if ($wgCUStripExif) {
                 $icc = $image->getImageProfiles("icc", true);
-                CompressUploads::autoRotate($image);
+                self::autoRotate($image);
                 $image->stripImage();
                 if (!empty($icc)) {
                     $image->profileImage("icc", $icc["icc"]);
                 }
             }
 
+            unlink($tempPath);
             $image->writeImage($tempPath);
         }
 
-        return true;
+        $upload->initializePathInfo($name, $tempPath, filesize($tempPath));
+        $rp = new ReflectionProperty("UploadBase", "mFinalExtension");
+        $rp->setAccessible(true);
+        $rp->setValue($upload, $extension);
+        $rp = new ReflectionProperty("UploadBase", "mTitle");
+        $rp->setAccessible(true);
+        $rp->setValue($upload, false);
+        $rp = new ReflectionProperty("UploadBase", "mFileProps");
+        $rp->setAccessible(true);
+        $mwProps = new MWFileProps(MediaWikiServices::getInstance()->getMimeAnalyzer());
+        $rp->setValue($upload, $mwProps->getPropsFromPath($tempPath, $extension));
     }
 
     public static function autoRotate($image) {
